@@ -20,12 +20,41 @@ app.post('/analyze-drawing', async (req, res) => {
       });
     }
 
+    const text = drawingText.toLowerCase();
+
+    const numbers = text.match(/\d+(\.\d+)?/g);
+
+    let width = null;
+    let height = null;
+
+    if (numbers && numbers.length >= 2) {
+      width = parseFloat(numbers[0]);
+      height = parseFloat(numbers[1]);
+    }
+
+    if (!width || !height) {
+      return res.json({
+        ok: false,
+        message: 'Не хватает данных',
+        missing: {
+          width: !width,
+          height: !height
+        },
+        hint: 'Укажи ширину и высоту, например: ширина 10м высота 3м'
+      });
+    }
+
+    const area = width * height;
+
     return res.json({
       ok: true,
       wallName: wallName || 'wall',
-      message: 'Drawing received successfully',
-      received: drawingText
+      width,
+      height,
+      area,
+      message: `Площадь стены: ${area} м2`
     });
+
   } catch (error) {
     console.error('Server error:', error);
     return res.status(500).json({
